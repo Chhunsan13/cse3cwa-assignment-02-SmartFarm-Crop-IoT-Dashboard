@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { db, initDb } = require('./db');
 
 const app = express();
 const PORT =3001;
@@ -13,6 +14,7 @@ app.get("/api/health", (req, res) => {
 
 app.listen(PORT, () =>{
     console.log(`Server is running on port ${PORT}`);
+    initDb();
 });
 
 module.exports = app;
