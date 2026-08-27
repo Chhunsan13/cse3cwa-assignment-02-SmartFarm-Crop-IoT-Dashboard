@@ -134,6 +134,23 @@ app.get("/api/crops", (req, res) => {
       });
     });
   });
+  app.delete("/api/crops/:id", (req, res) => {
+    db.get("SELECT * FROM crops WHERE id = ?", [req.params.id], (findErr, existing) => {
+      if (findErr) {
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      if (!existing) {
+        return res.status(404).json({ error: "Crop card not found" });
+      }
+  
+      db.run("DELETE FROM crops WHERE id = ?", [req.params.id], function (err) {
+        if (err) {
+          return res.status(500).json({ error: "Internal server error" });
+        }
+        res.json({ deleted: true, id: Number(req.params.id) });
+      });
+    });
+  });
   
 
 app.listen(PORT, () =>{
