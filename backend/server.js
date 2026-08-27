@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { db, initDb } = require('./db');
+const fs = require("fs");
+const path = require("path");
+const { validateReadings } = require("./validateReadings");
 
 const app = express();
 const PORT =3001;
@@ -152,6 +155,23 @@ app.get("/api/crops", (req, res) => {
     });
   });
   
+  app.get("/api/readings", (req, res) => {
+    const filePath = path.join(__dirname, "data", "sensor-readings.json");
+  
+    fs.readFile(filePath, "utf8", (err, raw) => {
+      if (err) {
+        return res.status(500).json({ error: "Sensor data file is invalid" });
+      }
+  
+      try {
+        const data = JSON.parse(raw);
+        const readings = validateReadings(data);
+        res.json(readings);
+      } catch (e) {
+        return res.status(500).json({ error: "Sensor data file is invalid" });
+      }
+    });
+  });
 
 app.listen(PORT, () =>{
     console.log(`Server is running on port ${PORT}`);

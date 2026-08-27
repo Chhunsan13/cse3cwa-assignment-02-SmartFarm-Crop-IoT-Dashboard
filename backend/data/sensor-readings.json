@@ -1,0 +1,22 @@
+[
+    {"crop_name":"Maize","timestamp":"2026-08-01T12:00:00","soil_moisture":55,"temperature":27,"rainfall":0,"sensor_status":"Online","notes":"Normal reading"},
+    {"crop_name":"Tomato","timestamp":"2026-08-03T09:00:00","soil_moisture":45,"temperature":32,"rainfall":0,"sensor_status":"Online","notes":"Warm day"},
+    {"crop_name":"Wheat","timestamp":"2026-08-01T11:00:00","soil_moisture":120,"temperature":25,"rainfall":0,"sensor_status":"Online","notes":"Intentional invalid test"},
+    {"crop_name":"Lettuce","timestamp":"2026-08-04T10:00:00","soil_moisture":69,"temperature":25,"rainfall":0,"sensor_status":"Online","notes":"Stable"},
+    {"crop_name":"Tomato","timestamp":"2026-08-05T09:00:00","soil_moisture":42,"temperature":38,"rainfall":0,"sensor_status":"Online","notes":"Dry and hot"},
+    {"crop_name":"Maize","timestamp":"2026-08-03T12:00:00","soil_moisture":56,"temperature":25,"rainfall":0,"sensor_status":"Online","notes":"OK"},
+    {"crop_name":"Wheat","timestamp":"2026-08-06T11:00:00","soil_moisture":60,"temperature":24,"rainfall":5,"sensor_status":"Online","notes":"Too wet after rain"},
+    {"crop_name":"Lettuce","timestamp":"2026-08-05T10:00:00","soil_moisture":70,"temperature":26,"rainfall":0,"sensor_status":"Online","notes":"Healthy range"},
+    {"crop_name":"Tomato","timestamp":"2026-08-01T09:00:00","soil_moisture":65,"temperature":25,"rainfall":0,"sensor_status":"Online","notes":"Morning check"},
+    {"crop_name":"Maize","timestamp":"2026-08-06T09:00:00","soil_moisture":58,"temperature":27,"rainfall":0,"sensor_status":"Faulty","notes":"Sensor requires inspection"},
+    {"crop_name":"Wheat","timestamp":"2026-08-03T11:00:00","soil_moisture":50,"temperature":22,"rainfall":3,"sensor_status":"Online","notes":"Moderate"},
+    {"crop_name":"Lettuce","timestamp":"2026-08-02T10:00:00","soil_moisture":68,"temperature":23,"rainfall":0,"sensor_status":"Online","notes":"Good"},
+    {"crop_name":"Tomato","timestamp":"2026-08-02T09:00:00","soil_moisture":50,"temperature":30,"rainfall":0,"sensor_status":"Online","notes":"Mid week"},
+    {"crop_name":"Maize","timestamp":"2026-08-02T12:00:00","soil_moisture":58,"temperature":26,"rainfall":0,"sensor_status":"Offline","notes":"Offline briefly"},
+    {"crop_name":"Wheat","timestamp":"2026-08-04T11:00:00","soil_moisture":52,"temperature":23,"rainfall":4,"sensor_status":"Online","notes":"Light rain"},
+    {"crop_name":"Lettuce","timestamp":"2026-08-01T10:00:00","soil_moisture":65,"temperature":22,"rainfall":0,"sensor_status":"Online","notes":"Start of week"},
+    {"crop_name":"Tomato","timestamp":"2026-08-04T09:00:00","soil_moisture":48,"temperature":33,"rainfall":0,"sensor_status":"Online","notes":"Getting dry"},
+    {"crop_name":"Maize","timestamp":"2026-08-04T12:00:00","soil_moisture":57,"temperature":27,"rainfall":0,"sensor_status":"Online","notes":"Field check"},
+    {"crop_name":"Wheat","timestamp":"2026-08-02T11:00:00","soil_moisture":45,"temperature":21,"rainfall":2,"sensor_status":"Online","notes":"Dry field"},
+    {"crop_name":"Lettuce","timestamp":"2026-08-03T10:00:00","soil_moisture":72,"temperature":24,"rainfall":0,"sensor_status":"Online","notes":"Consistent"}
+  ]
