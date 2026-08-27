@@ -81,6 +81,59 @@ app.get("/api/crops", (req, res) => {
       });
     });
   });
+  app.put("/api/crops/:id", (req, res) => {
+    const { crop_name, location, target_min, target_max, normal_water, notes } = req.body;
+  
+    db.get("SELECT * FROM crops WHERE id = ?", [req.params.id], (findErr, existing) => {
+      if (findErr) {
+        return res.status(500).json({ error: "Internal server error" });
+      }
+      if (!existing) {
+        return res.status(404).json({ error: "Crop card not found" });
+      }
+  
+      if (crop_name !== undefined && crop_name !== existing.crop_name) {
+        return res.status(400).json({ error: "crop_name cannot be changed" });
+      }
+  
+      if (!location || typeof location !== "string" || location.length < 1 || location.length > 100) {
+        return res.status(400).json({ error: "location is required" });
+      }
+      if (typeof target_min !== "number" || typeof target_max !== "number" || typeof normal_water !== "number") {
+        return res.status(400).json({ error: "target_min, target_max and normal_water must be numbers" });
+      }
+      if (target_min < 0 || target_min > 100 || target_max < 0 || target_max > 100 || target_min >= target_max) {
+        return res.status(400).json({ error: "invalid target range" });
+      }
+      if (normal_water <= 0 || normal_water > 10000) {
+        return res.status(400).json({ error: "normal_water must be greater than 0 and at most 10000" });
+      }
+  
+      const noteText = notes == null ? "" : String(notes);
+      if (noteText.length > 500) {
+        return res.status(400).json({ error: "notes must be at most 500 characters" });
+      }
+  
+      const sql = `
+        UPDATE crops
+        SET location = ?, target_min = ?, target_max = ?, normal_water = ?, notes = ?
+        WHERE id = ?
+      `;
+  
+      db.run(sql, [location, target_min, target_max, normal_water, noteText, req.params.id], function (err) {
+        if (err) {
+          return res.status(500).json({ error: "Internal server error" });
+        }
+  
+        db.get("SELECT * FROM crops WHERE id = ?", [req.params.id], (getErr, row) => {
+          if (getErr) {
+            return res.status(500).json({ error: "Internal server error" });
+          }
+          res.json(row);
+        });
+      });
+    });
+  });
   
 
 app.listen(PORT, () =>{
