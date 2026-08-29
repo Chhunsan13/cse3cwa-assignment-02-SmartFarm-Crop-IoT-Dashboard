@@ -128,11 +128,18 @@ Extra alerts (valid Online only): temperature &gt; 35 → High temperature; rain
 
 Overall Farm Status: No Crops (empty list) → Sensor Feed Unavailable (cards exist but no successful sensor load) → Critical (any Sensor Problem or Invalid Data) → Watch (Dry, Too Wet, or High temperature) → otherwise Normal. Rain detected alone does not change farm status.
 
-## Sensor JSON — AI prompt and checks
+## AI use and reflection
 
-The file `backend/data/sensor-readings.json` was generated from the assignment prompt, then checked and corrected by hand.
+This section meets the assignment AI acknowledgement requirements.
 
-**Prompt used:**
+### AI tool(s) used
+
+- **Cursor (Composer / Agent)** — project scaffolding, Express API routes, SQLite setup, React dashboard components, CSS, `validateReadings.js`, and debugging.
+- **ChatGPT-style prompt** (via Cursor) — first draft of `backend/data/sensor-readings.json` using the assignment’s sensor-generation prompt below.
+
+I reviewed, tested, and corrected all AI-assisted output before submission.
+
+### Final prompt used to generate the 20 sensor readings
 
 ```
 Generate a valid JSON array containing exactly 20 simulated SmartFarm sensor readings.
@@ -155,23 +162,58 @@ Make the latest readings produce these cases with the default Crop Card settings
 Return only the JSON array. Do not use Markdown or explanation.
 ```
 
-**Checks / corrections:**
+The committed file is `backend/data/sensor-readings.json`.
 
-- Confirmed 20 objects and five readings per crop.
-- Mixed array order so the latest reading is not the last item.
-- Latest Tomato / Lettuce / Wheat / Maize match the four required dashboard cases.
-- One older Wheat reading has `soil_moisture: 120` (Invalid Data in Sensor History, not the latest Wheat reading).
-- Filenames: the first save used `sensor-reading.json` (missing “s”). It was renamed to `sensor-readings.json` so `GET /api/readings` could find it.
+### Problem found and corrected (AI-generated data or code)
 
-**How uniqueness and matching were verified:** create Maize once (success), create Maize again (HTTP 409). Matching uses `===` on `crop_name`.
+**Data — wrong filename:** The first save was named `sensor-reading.json` (missing the **s**). `GET /api/readings` looked for `sensor-readings.json`, so the API returned `{"error":"Sensor data file is invalid"}`. I renamed the file to match the assignment path.
 
-**How latest timestamps were verified:** readings for each crop are unsorted in the file; the UI still shows the greatest timestamp (for example Tomato `2026-08-05T09:00:00`, not the last Tomato object in the array).
+**Data — latest-case checks:** I manually verified that the greatest timestamp per crop produces the four required dashboard cases (Dry Tomato with high temp, Healthy Lettuce, Too Wet Wheat with rain ≥ 5 mm, Faulty Maize). I adjusted timestamps and values where the first AI draft did not match.
 
-## AI use
+**Code — missing imports in `App.jsx`:** After adding Create/Edit/Delete, the page failed because `createCrop` and `getAvailableCropNames` were used but not imported. I added the imports and retested in the browser.
 
-- **Tools:** Cursor (Composer) for project setup, Express routes, SQLite seeding, React dashboard wiring, CSS, and debugging.
-- **What I checked / implemented:** Crop Card validation and error status codes, sensor file counts and latest-case values, decision-table order, and the Create / Edit / Delete / Refresh flow in the browser.
-- **Decision I made:** keep analysis only in `frontend/src/utils/analysis.js` so Crop Cards, Sensor History, and Overall Farm Status share one rule set, and keep sensor JSON read-only on the backend.
+### How `crop_name` uniqueness and exact matching were verified
+
+**Uniqueness (backend):**
+
+1. Created a Maize Crop Card via **POST /api/crops** → **201** success.
+2. Posted the same `crop_name` again → **409** with `{"error":"crop_name already exists"}`.
+3. SQLite `UNIQUE` constraint on `crop_name` prevents duplicates in the database.
+
+**Exact matching (frontend):**
+
+- `getLatestReading` uses strict equality: `r.crop_name === cropName`.
+- `Tomato` matches `Tomato` only; `tomato` does not match (case-sensitive).
+- Verified on the dashboard: each card shows readings only for its exact crop name.
+
+### How the greatest timestamp and required latest cases were verified
+
+**Greatest timestamp:**
+
+- Readings for each crop are in **mixed order** in the JSON file (not sorted by time).
+- `getLatestReading` filters by `crop_name`, sorts by `timestamp` descending with `localeCompare`, and takes `[0]`.
+- Confirmed in the UI and by inspection of the file, for example:
+  - Tomato latest: `2026-08-05T09:00:00` (not the last Tomato object in the array)
+  - Maize latest: `2026-08-06T09:00:00` (Faulty — not the last Maize row)
+
+**Required latest cases** (with default seeded card settings):
+
+| Crop | Latest timestamp | Expected on dashboard | Verified |
+| --- | --- | --- | --- |
+| Tomato | 2026-08-05T09:00:00 | Dry, High temperature, 500 L | moisture 42 &lt; 55, temp 38°C |
+| Lettuce | 2026-08-05T10:00:00 | Healthy | moisture 70 within 60–80 |
+| Wheat | 2026-08-06T11:00:00 | Too Wet, Rain detected | moisture 60 &gt; 55, rain 5 mm |
+| Maize | 2026-08-06T09:00:00 | Sensor Problem | `sensor_status` Faulty |
+
+**Invalid Data (history):** Wheat reading `2026-08-01T11:00:00` with `soil_moisture: 120` is structurally valid (returned by the API) but labelled **Invalid Data** in Sensor History — it is not the latest Wheat reading.
+
+### One implementation decision I made independently
+
+I kept **all dashboard analysis in one place**: `frontend/src/utils/analysis.js` (`analyseCrop`, `calculateFarmStatus`, `getLatestReading`). The Express backend only stores Crop Cards and returns **raw** sensor JSON — it does not calculate conditions or recommendations.
+
+**Why:** The assignment requires the same decision rules for main cards and Sensor History. A single function avoids copying the priority table into multiple React components and makes it easier to explain and test the logic in one file.
+
+A second decision: sensor readings are **never written** by the API (no POST/PUT/DELETE for `/api/readings`), so Crop Card CRUD cannot change the simulated IoT feed.
 
 ## Project limitation
 
