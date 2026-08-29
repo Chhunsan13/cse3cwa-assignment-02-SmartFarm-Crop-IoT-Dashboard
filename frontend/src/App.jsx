@@ -8,6 +8,89 @@ import {
 } from "./utils/analysis";
 import "./App.css";
 
+function statusBadgeClass(status) {
+  const key = status.toLowerCase().replace(/\s+/g, "-");
+  return `badge badge-${key}`;
+}
+
+function conditionBadgeClass(condition) {
+  if (condition === "N/A") return "badge badge-na";
+  const key = condition.toLowerCase().replace(/\s+/g, "-");
+  return `badge badge-${key}`;
+}
+
+function CropFormFields({ form, setForm, showCropSelect, availableNames }) {
+  return (
+    <div className="form-grid">
+      {showCropSelect ? (
+        <label>
+          Crop
+          <select
+            required
+            value={form.crop_name}
+            onChange={(e) => setForm({ ...form, crop_name: e.target.value })}
+          >
+            <option value="">Select a crop</option>
+            {availableNames.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <p className="readonly-field full-width">
+          Crop name (read-only): <strong>{form.crop_name}</strong>
+        </p>
+      )}
+      <label>
+        Location
+        <input
+          required
+          maxLength={100}
+          value={form.location}
+          onChange={(e) => setForm({ ...form, location: e.target.value })}
+        />
+      </label>
+      <label>
+        Target min (%)
+        <input
+          required
+          type="number"
+          value={form.target_min}
+          onChange={(e) => setForm({ ...form, target_min: e.target.value })}
+        />
+      </label>
+      <label>
+        Target max (%)
+        <input
+          required
+          type="number"
+          value={form.target_max}
+          onChange={(e) => setForm({ ...form, target_max: e.target.value })}
+        />
+      </label>
+      <label>
+        Normal water (L)
+        <input
+          required
+          type="number"
+          value={form.normal_water}
+          onChange={(e) => setForm({ ...form, normal_water: e.target.value })}
+        />
+      </label>
+      <label className="full-width">
+        Notes
+        <input
+          maxLength={500}
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+        />
+      </label>
+    </div>
+  );
+}
+
 function App() {
   const [crops, setCrops] = useState([]);
   const [readings, setReadings] = useState([]);
@@ -22,13 +105,13 @@ function App() {
   const [historyCrop, setHistoryCrop] = useState(null);
   const [message, setMessage] = useState("");
   const [form, setForm] = useState({
-  crop_name: "",
-  location: "",
-  target_min: "",
-  target_max: "",
-  normal_water: "",
-  notes: "",
-});
+    crop_name: "",
+    location: "",
+    target_min: "",
+    target_max: "",
+    normal_water: "",
+    notes: "",
+  });
 
   async function loadCrops() {
     const data = await getCrops();
@@ -43,14 +126,16 @@ function App() {
     setLastRefresh(new Date().toLocaleTimeString());
     setSensorError("");
   }
+
   async function handleRefresh() {
     try {
       await loadReadings();
+      setMessage("Sensor data refreshed.");
     } catch {
       setSensorError("Refresh failed. Previous sensor data is still shown.");
     }
   }
-  
+
   async function handleCreate(e) {
     e.preventDefault();
     setFormError("");
@@ -83,6 +168,7 @@ function App() {
   function startEdit(crop) {
     setEditingId(crop.id);
     setFormError("");
+    setShowCreate(false);
     setForm({
       crop_name: crop.crop_name,
       location: crop.location,
@@ -158,209 +244,212 @@ function App() {
   const availableNames = getAvailableCropNames(readings, crops);
 
   if (loading) {
-    return <main className="app"><p>Loading...</p></main>;
+    return (
+      <main className="app">
+        <div className="loading-state">
+          <div className="spinner" />
+          Loading dashboard…
+        </div>
+      </main>
+    );
   }
 
   if (cropsError) {
     return (
       <main className="app">
-        <p className="error">{cropsError}</p>
-        <button type="button" onClick={() => window.location.reload()}>
-          Retry
-        </button>
+        <div className="panel">
+          <p className="banner banner-error">{cropsError}</p>
+          <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
+            Retry
+          </button>
+        </div>
       </main>
     );
   }
 
   return (
     <main className="app">
-      <h1>SmartFarm Crop Dashboard</h1>
-      <p>
-        Overall Status: <strong>{farmStatus}</strong> · Crop cards: {crops.length} · Last sensor refresh: {lastRefresh}
-      </p>
-      <p>
+      <header className="dashboard-header">
+        <h1>SmartFarm Crop Dashboard</h1>
+        <p className="subtitle">GreenFields Farm — crop cards + live sensor feed</p>
+      </header>
+
+      <section className="stats-row">
+        <div className="stat-card">
+          <span className="stat-label">Overall status</span>
+          <span className={statusBadgeClass(farmStatus)}>{farmStatus}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Crop cards</span>
+          <span className="stat-value">{crops.length}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Last sensor refresh</span>
+          <span className="stat-value">{lastRefresh}</span>
+        </div>
+      </section>
+
+      <div className="toolbar">
         <button
           type="button"
+          className="btn btn-primary"
           disabled={!sensorAvailable || availableNames.length === 0}
-          onClick={() => setShowCreate(!showCreate)}
+          onClick={() => {
+            setShowCreate(!showCreate);
+            setEditingId(null);
+          }}
         >
-          Add Crop Card
-        </button>{" "}
-        <button type="button" onClick={handleRefresh}>
+          {showCreate ? "Cancel" : "Add Crop Card"}
+        </button>
+        <button type="button" className="btn btn-secondary" onClick={handleRefresh}>
           Refresh Sensor Data
         </button>
-      </p>
+      </div>
+
+      {sensorError && <p className="banner banner-error">{sensorError}</p>}
+      {message && <p className="banner banner-success">{message}</p>}
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="card">
+        <form onSubmit={handleCreate} className="panel">
           <h2>Add Crop Card</h2>
-          {formError && <p className="error">{formError}</p>}
-          <label>
-            Crop
-            <select
-              required
-              value={form.crop_name}
-              onChange={(e) => setForm({ ...form, crop_name: e.target.value })}
-            >
-              <option value="">Select a crop</option>
-              {availableNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Location
-            <input
-              required
-              maxLength={100}
-              value={form.location}
-              onChange={(e) => setForm({ ...form, location: e.target.value })}
-            />
-          </label>
-          <label>
-            Target min
-            <input
-              required
-              type="number"
-              value={form.target_min}
-              onChange={(e) => setForm({ ...form, target_min: e.target.value })}
-            />
-          </label>
-          <label>
-            Target max
-            <input
-              required
-              type="number"
-              value={form.target_max}
-              onChange={(e) => setForm({ ...form, target_max: e.target.value })}
-            />
-          </label>
-          <label>
-            Normal water
-            <input
-              required
-              type="number"
-              value={form.normal_water}
-              onChange={(e) => setForm({ ...form, normal_water: e.target.value })}
-            />
-          </label>
-          <label>
-            Notes
-            <input
-              maxLength={500}
-              value={form.notes}
-              onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            />
-          </label>
-          <button type="submit">Save</button>
+          {formError && <p className="banner banner-error">{formError}</p>}
+          <CropFormFields
+            form={form}
+            setForm={setForm}
+            showCropSelect
+            availableNames={availableNames}
+          />
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary">Save crop card</button>
+          </div>
         </form>
       )}
-      {sensorError && <p className="error">{sensorError}</p>}
-      {message && <p>{message}</p>}
 
       {crops.length === 0 ? (
-        <p>No crop cards yet.</p>
+        <div className="empty-state panel">
+          <p>No crop cards yet. Add a crop when the sensor feed is available.</p>
+        </div>
       ) : (
         <section className="card-grid">
           {results.map((result) => (
-            <article key={result.crop.id} className="card">
-              <h2>
-                {result.crop.crop_name} — {result.crop.location}
-              </h2>
-              <p>Target: {result.crop.target_min}–{result.crop.target_max}% · Normal water: {result.crop.normal_water} L</p>
-              {result.latest_reading ? (
-                <>
-                  <p>Latest: {result.latest_reading.timestamp}</p>
-                  <p>
-                    Moisture: {result.latest_reading.soil_moisture}% · Temperature: {result.latest_reading.temperature} C · Rainfall: {result.latest_reading.rainfall} mm
-                  </p>
-                </>
-              ) : (
-                <p>Sensor: N/A</p>
-              )}
-              <p>Condition: {result.condition}</p>
-              <p>Recommended: {result.recommended_water}</p>
-              <p>Alert: {result.alerts.length ? result.alerts.join(", ") : "None"}</p>
-              <p>Action: {result.action}</p>
-              <p>
-                <button type="button" onClick={() => startEdit(result.crop)}>Edit</button>{" "}
-                <button type="button" onClick={() => handleDelete(result.crop.id)}>Delete</button>{" "}
-                <button type="button" onClick={() => setHistoryCrop(result.crop)}>View Sensor History</button>
-              </p>
+            <article key={result.crop.id} className="crop-card">
+              <div className="crop-card-header">
+                <div>
+                  <h2>{result.crop.crop_name}</h2>
+                  <p className="location">{result.crop.location}</p>
+                </div>
+                <span className={conditionBadgeClass(result.condition)}>{result.condition}</span>
+              </div>
+
+              <div className="crop-card-body">
+                <div className="detail-row">
+                  <span className="detail-label">Target moisture</span>
+                  <span className="detail-value">
+                    {result.crop.target_min}–{result.crop.target_max}%
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Normal water</span>
+                  <span className="detail-value">{result.crop.normal_water} L</span>
+                </div>
+
+                {result.latest_reading ? (
+                  <>
+                    <div className="detail-row">
+                      <span className="detail-label">Latest reading</span>
+                      <span className="detail-value">{result.latest_reading.timestamp}</span>
+                    </div>
+                    <div className="sensor-grid">
+                      <div className="sensor-stat">
+                        <span className="value">{result.latest_reading.soil_moisture}%</span>
+                        <span className="unit-label">Moisture</span>
+                      </div>
+                      <div className="sensor-stat">
+                        <span className="value">{result.latest_reading.temperature}°C</span>
+                        <span className="unit-label">Temp</span>
+                      </div>
+                      <div className="sensor-stat">
+                        <span className="value">{result.latest_reading.rainfall} mm</span>
+                        <span className="unit-label">Rain</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="detail-label">Sensor data unavailable</p>
+                )}
+
+                <div className="detail-row">
+                  <span className="detail-label">Recommended</span>
+                  <span className="detail-value">{result.recommended_water}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Alerts</span>
+                  <span className="detail-value">
+                    {result.alerts.length ? result.alerts.join(", ") : "None"}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Action</span>
+                  <span className="detail-value">{result.action}</span>
+                </div>
+              </div>
+
+              <div className="crop-card-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => startEdit(result.crop)}>
+                  Edit
+                </button>
+                <button type="button" className="btn btn-danger" onClick={() => handleDelete(result.crop.id)}>
+                  Delete
+                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => setHistoryCrop(result.crop)}>
+                  Sensor History
+                </button>
+              </div>
 
               {editingId === result.crop.id && (
-                <form onSubmit={handleUpdate}>
-                  {formError && <p className="error">{formError}</p>}
-                  <p>Crop name (read-only): {result.crop.crop_name}</p>
-                  <label>
-                    Location
-                    <input
-                      required
-                      maxLength={100}
-                      value={form.location}
-                      onChange={(e) => setForm({ ...form, location: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Target min
-                    <input
-                      required
-                      type="number"
-                      value={form.target_min}
-                      onChange={(e) => setForm({ ...form, target_min: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Target max
-                    <input
-                      required
-                      type="number"
-                      value={form.target_max}
-                      onChange={(e) => setForm({ ...form, target_max: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Normal water
-                    <input
-                      required
-                      type="number"
-                      value={form.normal_water}
-                      onChange={(e) => setForm({ ...form, normal_water: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Notes
-                    <input
-                      maxLength={500}
-                      value={form.notes}
-                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                    />
-                  </label>
-                  <button type="submit">Save changes</button>
-                  <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
+                <form onSubmit={handleUpdate} className="edit-form crop-card-body">
+                  {formError && <p className="banner banner-error">{formError}</p>}
+                  <CropFormFields form={form} setForm={setForm} showCropSelect={false} />
+                  <div className="form-actions">
+                    <button type="submit" className="btn btn-primary">Save changes</button>
+                    <button type="button" className="btn btn-ghost" onClick={() => setEditingId(null)}>
+                      Cancel
+                    </button>
+                  </div>
                 </form>
               )}
             </article>
           ))}
         </section>
       )}
-          {historyCrop && (
-        <section className="card">
-          <h2>Sensor History — {historyCrop.crop_name}</h2>
-          <button type="button" onClick={() => setHistoryCrop(null)}>Close</button>
-          {readings
-            .filter((r) => r.crop_name === historyCrop.crop_name)
-            .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
-            .map((reading) => {
-              const analysed = analyseCrop(historyCrop, reading);
-              return (
-                <p key={reading.timestamp}>
-                  {reading.timestamp} · Moisture {reading.soil_moisture}% · {reading.sensor_status} · {analysed.condition} · {analysed.action}
-                </p>
-              );
-            })}
+
+      {historyCrop && (
+        <section className="panel">
+          <div className="panel-header">
+            <h2>Sensor History — {historyCrop.crop_name}</h2>
+            <button type="button" className="btn btn-ghost" onClick={() => setHistoryCrop(null)}>
+              Close
+            </button>
+          </div>
+          <ul className="history-list">
+            {readings
+              .filter((r) => r.crop_name === historyCrop.crop_name)
+              .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+              .map((reading) => {
+                const analysed = analyseCrop(historyCrop, reading);
+                return (
+                  <li key={reading.timestamp} className="history-item">
+                    <div>
+                      <strong>{reading.timestamp}</strong>
+                      <div className="history-meta">
+                        Moisture {reading.soil_moisture}% · {reading.temperature}°C · {reading.rainfall} mm · {reading.sensor_status}
+                      </div>
+                    </div>
+                    <span className={conditionBadgeClass(analysed.condition)}>{analysed.condition}</span>
+                  </li>
+                );
+              })}
+          </ul>
         </section>
       )}
     </main>
