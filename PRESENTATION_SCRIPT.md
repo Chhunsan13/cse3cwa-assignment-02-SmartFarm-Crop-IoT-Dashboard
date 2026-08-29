@@ -1,195 +1,209 @@
 # Presentation / video script (3–5 minutes)
 
-Use this for your LMS demo video. Read the **Say** parts in your own words — you do not need to memorise every line. The **Do** parts tell you what to click and what the marker should see.
+Use this for your LMS demo video. The script below follows the **exact order the assignment requires**. Tick each item as you record.
+
+---
+
+## Required video items (assignment checklist)
+
+| # | Must show in video | When in this script | What marker should see |
+| --- | --- | --- | --- |
+| 1 | **Initial load** | Step 1 (0:00) | 3 cards load, last refresh updates, Tomato/Lettuce/Wheat visible |
+| 2 | **Create Maize** | Step 2 (0:35) | Add form, save, 4th card appears |
+| 3 | **Latest Maize matching** | Step 3 (1:05) | Maize card shows latest timestamp `2026-08-06T09:00:00`, Faulty, Sensor Problem |
+| 4 | **One Edit** | Step 4 (1:25) | Edit a card, save, values update |
+| 5 | **Delete and re-create** | Step 5 (1:50) | Delete Maize → recreate Maize → same sensor data |
+| 6 | **Refresh Sensor Data** | Step 6 (2:25) | Click refresh, last refresh time changes |
+| 7 | **Dry / Healthy / Too Wet** | Step 1 + Step 7 recap | Tomato Dry, Lettuce Healthy, Wheat Too Wet on screen |
+| 8 | **Sensor Problem or Invalid Data** | Step 3 + Step 6 | Maize Sensor Problem; Wheat history Invalid Data |
+| 9 | **Explain crop_name + latest timestamp** | Step 8 (3:00) | You speak this clearly in your own words |
 
 **Before you record**
 
-1. Open **two terminals** (or two tabs):
-   - Terminal 1: `cd backend` → `npm start` (should say port 3001)
-   - Terminal 2: `cd frontend` → `npm run dev` (should say port 5173)
-2. Open browser: **http://localhost:5173**
-3. **Recommended:** delete `backend/smartfarm.db` and restart the backend so you start with **only 3 cards** (Tomato, Lettuce, Wheat). Maize should **not** be on the dashboard yet — you will create it live.
-4. Close extra tabs and notifications so the recording looks clean.
+1. Terminal 1: `cd backend` → `npm start`
+2. Terminal 2: `cd frontend` → `npm run dev`
+3. Browser: http://localhost:5173
+4. **Delete `backend/smartfarm.db`** and restart backend → start with **3 cards only** (no Maize yet)
+5. Close notifications; zoom browser so cards are readable
 
-**Target length:** about **4 minutes**. Stop before 5:00.
+**Target length:** ~4 minutes (max 5:00)
 
 ---
 
-## 0:00–0:35 — Introduction and first load
+## Step 1 — Initial load (required ✓)
+
+**Time:** 0:00–0:35
 
 **Do:**
-- Start on the dashboard after a fresh page load (you may briefly see the loading spinner).
-- Point at the **title** and the three summary boxes at the top.
-- Slowly point at each crop card: Tomato, Lettuce, Wheat.
+- Refresh the page (or open http://localhost:5173 fresh)
+- Wait for loading spinner to finish
+- Point at: Overall status, crop count **3**, last sensor refresh (not “Never”)
 
-**Say (example):**
-> Hi, this is my SmartFarm Crop IoT Dashboard for Assignment 2.  
+**Say:**
+> This is my SmartFarm Crop IoT Dashboard. On initial load the app calls GET /api/crops and GET /api/readings.  
 >  
-> The app has two separate data sources. **Crop Cards** are stored in **SQLite** on the backend — things like location, target moisture range, and how much water to use normally. **Sensor readings** come from a **read-only JSON file** that simulates an IoT feed.  
->  
-> When the page loads, React calls **GET /api/crops** and **GET /api/readings**. You can see the last sensor refresh time update — that means the sensor request succeeded.  
->  
-> Right now I have three seeded cards: Tomato, Lettuce, and Wheat. Maize is not in the database yet — I will create that in a moment.
+> I have three seeded Crop Cards from SQLite: Tomato, Lettuce, and Wheat. Maize is not seeded — I will create it next.
 
-**Point out on screen:**
-- **Tomato** — condition badge **Dry**, moisture **42%** (below target 55–75), alert **High temperature** (38°C), action **Water crop**
-- **Lettuce** — **Healthy**, moisture **70%** inside target 60–80
-- **Wheat** — **Too Wet**, moisture **60%** above target max 55, alert **Rain detected** (5 mm)
-- **Overall status: Watch** — because Tomato is Dry and Wheat is Too Wet (and Tomato has high temperature). Rain alone does not change farm status.
+**Show Dry / Healthy / Too Wet (required ✓)** — point at each card:
+
+| Card | Condition | Evidence on screen |
+| --- | --- | --- |
+| **Tomato** | **Dry** | Moisture 42% &lt; target 55–75, action Water crop |
+| **Lettuce** | **Healthy** | Moisture 70% in range 60–80, action Monitor |
+| **Wheat** | **Too Wet** | Moisture 60% &gt; max 55, action Stop watering |
+
+> Tomato is Dry with a high-temperature alert. Lettuce is Healthy. Wheat is Too Wet with rain detected. Overall status is Watch.
 
 ---
 
-## 0:35–1:20 — Create Maize (CRUD + matching)
+## Step 2 — Create Maize (required ✓)
+
+**Time:** 0:35–1:05
 
 **Do:**
 - Click **Add Crop Card**
-- Point at the **crop dropdown** — only **Maize** should appear (Tomato, Lettuce, Wheat already have cards)
-- Fill in:
-  - Crop: **Maize**
-  - Location: **South Field**
-  - Target min: **50**, max: **70**
-  - Normal water: **600**
-  - Notes: (optional, can leave blank)
+- Show dropdown — only **Maize** available
+- Enter: **South Field**, min **50**, max **70**, water **600**
 - Click **Save crop card**
-- Point at the new Maize card and the **Overall status** changing to **Critical**
+- Count becomes **4**
 
-**Say (example):**
-> To create a card, I pick a crop name from the dropdown. This list is built from unique names in the sensor JSON, **minus** crops that already have a card.  
->  
-> When I save, the backend runs **POST /api/crops** and stores the settings in SQLite. The frontend does **not** write to the sensor file.  
->  
-> After create, the dashboard **matches** Maize to readings where **crop_name** equals Maize — exact spelling, case-sensitive. It then picks the reading with the **greatest timestamp**, not the last item in the JSON array.  
->  
-> Maize’s latest reading has **sensor_status Faulty**, so the condition is **Sensor Problem**, recommended water is **N/A**, and the action is **Check sensor**. Because at least one card is Sensor Problem, **Overall Farm Status becomes Critical**.
-
-**If asked mentally “why Critical?”** — Any Sensor Problem or Invalid Data on any card → Critical. Maize triggered it.
+**Say:**
+> I create Maize through the UI. The dropdown only shows crop names from the sensor JSON that do not already have a card. POST /api/crops saves this to SQLite only — not the JSON file.
 
 ---
 
-## 1:20–1:55 — Edit (immutable crop_name + recalculate)
+## Step 3 — Latest Maize matching (required ✓)
+
+**Time:** 1:05–1:25
 
 **Do:**
-- Click **Edit** on **Tomato** (or Wheat)
-- Point at **“Crop name (read-only)”** — you cannot change it
-- Change **location** (e.g. `Greenhouse A Updated`) or change **target min** slightly
+- Point at the **Maize card** specifically:
+  - **Latest reading:** `2026-08-06T09:00:00`
+  - **Condition:** Sensor Problem (badge)
+  - **Status:** Faulty sensor in the data
+  - Overall status → **Critical**
+
+**Say:**
+> This is latest Maize matching. The app filters readings where crop_name exactly equals Maize, then selects the greatest timestamp — 2026-08-06T09:00:00 — not the last Maize row in the JSON file.  
+>  
+> That reading is Faulty, so the condition is **Sensor Problem** — recommended water N/A, action Check sensor. That also makes Overall Farm Status **Critical**.
+
+**Sensor Problem example (required ✓)** — Maize covers this requirement.
+
+---
+
+## Step 4 — One Edit (required ✓)
+
+**Time:** 1:25–1:50
+
+**Do:**
+- Click **Edit** on **Tomato**
+- Point at **crop name read-only**
+- Change **location** (e.g. `Greenhouse A Updated`)
 - Click **Save changes**
-- Show the card text update immediately (and condition may change if you changed targets)
+- Card updates immediately
 
-**Say (example):**
-> Edit uses **PUT /api/crops/:id**. Only location, targets, normal water, and notes can change. **crop_name is immutable** — if I tried to send a different name, the API returns **400** with “crop_name cannot be changed”.  
->  
-> After a successful edit, the app refetches the crop list and **recalculates** the dashboard using the **same sensor readings** already in memory. Analysis is done in React in **analyseCrop** — not stored in the database.
+**Say:**
+> Edit uses PUT /api/crops/:id. crop_name cannot be changed. After save, the card recalculates with the current sensor readings.
 
 ---
 
-## 1:55–2:35 — Delete and re-create (data ownership)
+## Step 5 — Delete and re-create Maize (required ✓)
+
+**Time:** 1:50–2:25
 
 **Do:**
-- Click **Delete** on **Maize**
-- Confirm the card disappears, count goes back to **3**, status returns to **Watch**
-- Click **Add Crop Card** again — **Maize** is back in the dropdown
-- Create Maize again with the same values
-- Show it matches the **same Faulty** reading again
+- Click **Delete** on **Maize** → card gone, count **3**
+- Click **Add Crop Card** → Maize in dropdown again
+- Create Maize with same settings
+- Point at Maize card again: same timestamp `2026-08-06T09:00:00`, same Sensor Problem
 
-**Say (example):**
-> Delete runs **DELETE /api/crops/:id** and removes **only** the SQLite record. The sensor JSON file is **not** modified — there are still five Maize readings in the file.  
->  
-> After delete, Maize becomes available in the create dropdown again. When I recreate the card, it joins to the **same read-only sensor data** as before. That proves the two data sources stay independent.
+**Say:**
+> Delete removes only the SQLite card. The sensor JSON is unchanged. When I recreate Maize, it matches the same read-only Faulty reading again.
 
 ---
 
-## 2:35–3:20 — Refresh + Sensor History + Invalid Data
+## Step 6 — Refresh Sensor Data + Invalid Data (required ✓)
+
+**Time:** 2:25–3:00
 
 **Do:**
 - Click **Refresh Sensor Data**
-- Point at **last sensor refresh** time updating
+- Point at **last sensor refresh** time changing
 - On **Wheat**, click **Sensor History**
-- Scroll the list — **5 readings**, **newest first**
-- Point at the **top** reading: Too Wet, rain 5 mm
-- Point at an **older** reading with moisture **120**: badge **Invalid Data**
-
-**Say (example):**
-> Refresh calls **GET /api/readings** again. The backend **re-reads the file from disk** every time — no caching. All cards and Overall status are recalculated.  
->  
-> Sensor History shows every reading for that crop, sorted newest first. Importantly, it uses the **same analyseCrop function** as the main cards — I did not copy the rules twice.  
->  
-> One older Wheat reading has **soil_moisture 120**. The backend still returns it because the file is **structurally valid**. React applies the decision table and labels it **Invalid Data** — that is an Online reading with a value outside 0–100. Recommended water is N/A and the action is **Check reading**.
-
-**Optional one-liner on priority:**
-> If a reading were both Faulty and out of range, **Sensor Problem wins** — we check sensor status before Invalid Data.
-
----
-
-## 3:20–3:50 — Decision table recap + close
-
-**Do:**
-- Scroll past all cards one more time
-- Optionally mention the green success banner after create/edit/delete
-
-**Say (example):**
-> To summarise the decision logic for the latest reading:  
-> first **Offline or Faulty** → Sensor Problem;  
-> then **out-of-range numbers** on an Online reading → Invalid Data;  
-> then compare moisture to the card’s target range → **Dry**, **Healthy**, or **Too Wet**.  
-> Extra alerts like high temperature and rain are added only for valid Online readings.  
->  
-> Overall Farm Status is: No Crops, then Sensor Feed Unavailable, then Critical, then Watch, then Normal.  
->  
-> The key idea is one join key — **exact crop_name** — and the **latest timestamp** per crop. Thank you.
-
-**Stop recording** around 3:45–4:30.
-
----
-
-## What the marker expects to see (checklist)
-
-Use this before you submit the video:
-
-- [ ] Initial load — 3 seeded cards, sensor refresh works
-- [ ] Create Maize — 4th card, Sensor Problem, Critical
-- [ ] Edit — crop name read-only, card recalculates
-- [ ] Delete Maize — card gone, JSON unchanged
-- [ ] Re-create Maize — same sensor match
-- [ ] Refresh — last refresh updates
-- [ ] At least one **Dry**, **Healthy**, **Too Wet** visible
-- [ ] **Sensor Problem** or **Invalid Data** shown (Maize + Wheat history)
-- [ ] You **explain** crop_name matching and latest timestamp in your own words
-
----
-
-## Backup lines (if you forget mid-recording)
-
-| Topic | What to say |
-| --- | --- |
-| **Two data sources** | “Crop Cards are in SQLite; sensor readings are a read-only JSON file.” |
-| **Matching** | “We join on exact, case-sensitive crop_name — Tomato does not match tomato.” |
-| **Latest reading** | “We sort by timestamp and take the greatest — not the last row in the file.” |
-| **Why Critical** | “Any Sensor Problem or Invalid Data on any card makes the farm Critical.” |
-| **Why Watch** | “Dry, Too Wet, or high temperature on any card — but not rain alone.” |
-| **Invalid vs structural error** | “Bad file → API 500. One bad number in a valid object → Invalid Data in the UI.” |
-| **Refresh failure** | “If refresh fails, we keep the last good readings and show an error banner.” |
-| **AI use** | “I used Cursor for setup and debugging; I tested matching, priorities, and CRUD myself.” |
-
----
-
-## Optional: failed refresh demo (+30 seconds)
-
-Only if you are under 4 minutes and want extra marks for loading behaviour:
-
-1. In the backend terminal, press **Ctrl+C** to stop the server
-2. In the browser, click **Refresh Sensor Data**
-3. Show the **red error banner** — cards and values should **stay** as they were; last refresh time should **not** change
-4. Restart backend: `npm start`
-5. Refresh again — should work
+- Point at newest: Too Wet
+- Point at older reading: moisture **120** → **Invalid Data** badge
 
 **Say:**
-> If the sensor request fails after we already had data, the dashboard keeps the previous readings and shows an error. It does not wipe the screen.
+> Refresh calls GET /api/readings again and recalculates all cards.  
+>  
+> In Sensor History, an older Wheat reading has soil_moisture 120. The backend returns it because the file is structurally valid, but React labels it **Invalid Data** — that is my Invalid Data example.
+
+**Invalid Data example (required ✓)** — Wheat history covers this (Maize already showed Sensor Problem).
 
 ---
 
-## Ubuntu note (if you record on Linux)
+## Step 7 — Quick recap of conditions (required ✓)
 
-Same steps — from the project folder:
+**Time:** 3:00–3:15
+
+**Do:**
+- Scroll cards: point at **Dry** (Tomato), **Healthy** (Lettuce), **Too Wet** (Wheat), **Sensor Problem** (Maize)
+
+**Say:**
+> So on one screen I have Dry, Healthy, Too Wet, and Sensor Problem — all from the same analyseCrop decision table.
+
+---
+
+## Step 8 — Explain crop_name matching and latest timestamp (required ✓)
+
+**Time:** 3:15–3:45
+
+**Do:**
+- Stay on dashboard (no need to open code unless you want to)
+- Speak clearly — this is the **brief explanation** the marker listens for
+
+**Say (learn this in your own words):**
+> To join Crop Cards and sensor data, I use one key: **crop_name**. Matching is **exact and case-sensitive** — Tomato matches Tomato, but not tomato.  
+>  
+> For each card I filter all readings with the same crop_name, then pick the reading with the **greatest timestamp**. I do not assume the last object in the JSON array is the latest — the file is deliberately mixed. Timestamps are in YYYY-MM-DDTHH:mm:ss format, so I can compare them as strings and take the newest.  
+>  
+> That is how Maize links to its Faulty reading at 2026-08-06T09:00:00, and how Tomato shows Dry from its latest reading at 2026-08-05T09:00:00.
+
+**Say to close:**
+> Crop Cards live in SQLite, sensors are read-only JSON, and the dashboard combines them with exact crop_name and latest timestamp. Thank you.
+
+**Stop recording** — aim to finish by 4:30.
+
+---
+
+## One-page recording order (print this)
+
+1. Load page → 3 cards, Dry + Healthy + Too Wet  
+2. Add Maize → save  
+3. Point at Maize latest time + Sensor Problem  
+4. Edit Tomato → save  
+5. Delete Maize → recreate Maize  
+6. Refresh → time updates  
+7. Wheat Sensor History → Invalid Data  
+8. **Speak:** crop_name exact match + greatest timestamp  
+9. End
+
+---
+
+## Backup lines
+
+| If you forget… | Say this |
+| --- | --- |
+| crop_name | “Exact, case-sensitive match only.” |
+| Latest timestamp | “Greatest timestamp wins — not last in the file.” |
+| Why Critical | “Maize Sensor Problem triggers Critical.” |
+| Why Watch (before Maize) | “Tomato Dry and Wheat Too Wet.” |
+| Invalid Data | “Valid JSON object, but moisture 120 is out of range.” |
+
+---
+
+## Ubuntu (if recording on Linux)
 
 ```bash
 cd backend && npm install && npm start
@@ -197,4 +211,4 @@ cd backend && npm install && npm start
 cd frontend && npm install && npm run dev
 ```
 
-Open http://localhost:5173. If `sqlite3` fails to install, run `sudo apt install build-essential python3` and `npm install` again in `backend`.
+Open http://localhost:5173
