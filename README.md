@@ -22,7 +22,7 @@ Requires **Node.js 18+**. Works on **Windows and Ubuntu/Linux**. Paths use Nodeâ
 node -v   # should be 18+
 npm -v
 
-git clone <your-repo-url>
+git clone <https://github.com/Chhunsan13/cse3cwa-assignment-02-SmartFarm-Crop-IoT-Dashboard.git>
 cd cse3cwa-assignment-02-SmartFarm-Crop-IoT-Dashboard
 
 # Backend terminal
